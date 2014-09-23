@@ -76,9 +76,9 @@ d3.xml("field.svg", function(xml) {
 
 	
 	scaleh.domain([0, width]);
-	scaleh.range([0, 1268]);//svg.clientwidth]);
+	scaleh.range([0, 1268]);
 	scalev.domain([0, height]);
-	scalev.range([0, 808]);//svg.clientheight]);
+	scalev.range([0, 808]);
   
 });
 d3.json("players.json", function(json) {
@@ -133,7 +133,6 @@ d3.json("players.json", function(json) {
 		.style("stroke-width", "1")	
 		.on("mouseover", function(d) {
 
-			//Get this bar's x/y values, then augment for the tooltip
 			var xPosition = scaleh(50 + parseFloat(d3.select(this).attr("cx")));
 			var yPosition = scalev(10 + parseFloat(d3.select(this).attr("cy")));
 
@@ -164,7 +163,7 @@ d3.json("players.json", function(json) {
 			.style("display", "block");
 			
 			d3.select(this).style("fill", "LightGoldenRodYellow");
-			//Update the tooltip position and value
+
 			d3.select("#tooltip")
 			  .style("left", xPosition + "px")
 			  .style("top", yPosition + "px")
@@ -179,7 +178,6 @@ d3.json("players.json", function(json) {
 			  .select("#pos")
 			  .text(d.nodes[0].Position);
 
-			//Show the tooltip
 			d3.select("#tooltip").classed("hidden", false);
 			   
 		})
@@ -196,8 +194,7 @@ d3.json("players.json", function(json) {
 			d3.selectAll(".pathlabel")
 			.style("fill", "grey")
 			.style("display", "none");
-						
-			//Hide the tooltip
+
 			d3.select("#tooltip").classed("hidden", true);
 			d3.select(this).style("fill", "white");
 		});
@@ -228,18 +225,7 @@ d3.json("players.json", function(json) {
 			.style("font-size", "12px")
 			.attr("class", "texts")
 			.attr("x", "0")
-			/*function(d, i) {
-				var bbox = this.previousSibling.getBBox();
-				var x = Math.floor(bbox.x + bbox.width/2.0);
-				return x;
-			})*/
 			.attr("y", "0")
-			/*function(d, i) {
-				var bbox = this.previousSibling.getBBox();
-				var y = Math.floor(bbox.y + bbox.height/2.0);
-				return y ;
-			})
-			*/
 			.append("textPath")
 			.attr("class", function(d) {
 				return "pathlabel " + "from" + d.source.nodes[0].Number + " to" + d.target.nodes[0].Number;
@@ -254,15 +240,10 @@ d3.json("players.json", function(json) {
 			.style("stroke", "black")
 			.attr("filter","url(#f3)")
 			.style("fill", "white")
-			.style("font-family", "sans-serif")
-			
+			.style("font-family", "sans-serif")	
 			.style("display", "none");
 
 });
-
-
-
-	
 </script>
 	</body>
 </html>
