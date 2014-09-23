@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html><head>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+    <title>Real Madrid vs. Deportivo la Coruña</title>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="http://d3js.org/d3.rollup.v0.min.js"></script>
+
+</head>
+<style>
+#tooltip {
+        position: absolute;
+        width: 150px;
+        height: auto;
+        padding: 5px;
+        background-color: white;
+		opacity: 0.8;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+        -webkit-box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.4);
+        -moz-box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.4);
+        box-shadow: 4px 4px 5px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+}
+
+#tooltip.hidden {
+        display: none;
+}
+
+#tooltip p {
+        margin: 0;
+        font-family: sans-serif;
+        font-size: 12px;
+        line-height: 16px;
+}
+
+.link {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .2;
+}
+
+
+</style>
+
+<body>
+<div id="tooltip" class="hidden">
+        <p><strong>Player Detail</strong></p>
+        <p>Name: <span id="name">100</span></p>
+		<p>Number: <span id="number">100</span></p>
+		<p>Position: <span id="pos">100</span></p>
+</div>
+	<script>
+  	var scaleh = d3.scale.linear();
+	var scalev = d3.scale.linear();
+	var width = 1150,
+	height = 720;
+	
+	function fx(d) { return d.x; };
+	function fy(d) { return d.y; };
+	
+	var rollup = d3.rollup()
+    .x(function(d) { return fx(d); })
+    .y(function(d) { return fy(d); });
+
+	var svg;
+	
+	
+	
+d3.xml("field.svg", function(xml) {
+	svgdom = document.body.appendChild(xml.documentElement);
+
+  	svg = d3.select("svg");
+	var defs = d3.select("defs");
+
+	
+	scaleh.domain([0, width]);
+	scaleh.range([0, 831]);//svg.clientwidth]);
+	scalev.domain([0, height]);
+	scalev.range([0, 529]);//svg.clientheight]);
+  
+});
+d3.json("players.json", function(json) {
+
+	datap = json.nodes;
+
+	var datap_start = datap.filter( function (el){
+		return el.Status == "starting"; });
+
+	json.nodes = datap_start;
+	var graph = rollup(json);			
+			
+	var link = svg.selectAll(".link")
+		.data(graph.links)
+		.enter().append("g")
+		.attr("class", "linkg");
+    
+	svg.selectAll(".linkg")
+		.data(graph.links)
+		.append("path")
+		.attr("class", function(d) {
+			return "link " + "from" + d.source.nodes[0].Number + " to" + d.target.nodes[0].Number;
+		  })
+		.attr("id" ,function(d) {
+			return "link" + "from" + d.source.nodes[0].Number + "to" + d.target.nodes[0].Number;
+		  })	  
+		.attr("d", function(d) {
+			var sx = d.source.x, sy = d.source.y,
+			tx = d.target.x, ty = d.target.y,
+			dx = tx - sx, dy = ty - sy,
+			dr = 2 * Math.sqrt(dx * dx + dy * dy);
+			return "M" + sx + "," + sy + "A" + dr + "," + dr + " 0 0,1 " + tx + "," + ty;
+		  })
+		.style("stroke", "grey")
+		.style("stroke-width", function(d) { 
+			return d.value * 4; 
+		  });
+	  
+	var node = svg.selectAll(".node")
+		.data(graph.nodes)
+		.enter().append("g")
+		.attr("class", "node")
+		.style("pointer-events", "all")
+		.append("circle")
+		.attr("cx", function(d, i){ 
+			return d.x})
+		.attr("cy", function(d, i){ return d.y})
+		.attr("r", 10)
+		.attr("filter","url(#f3)")
+		.style("fill", "white")
+		.style("stroke", "grey")
+		.style("stroke-width", "1")	
+		.on("mouseover", function(d) {
+
+			//Get this bar's x/y values, then augment for the tooltip
+			var xPosition = scaleh(50 + parseFloat(d3.select(this).attr("cx")));
+			var yPosition = scalev(10 + parseFloat(d3.select(this).attr("cy")));
+
+			d3.selectAll(".to" + d.nodes[0].Number + ":not(.pathlabel)")
+			.transition()
+			.duration(10)
+			.style("stroke", "orange")
+			.style("display", "block")
+			.style("stroke-opacity", ".7")
+			;
+			
+			d3.selectAll(".from" + d.nodes[0].Number + ":not(.pathlabel)")
+			.transition()
+			.duration(10)
+			.style("stroke", "blue")
+			.style("display", "block")
+			.style("stroke-opacity", ".7")
+			;
+
+			d3.selectAll(".pathlabel.to" + d.nodes[0].Number)
+			.style("fill", "orange")
+			.style("stroke", "white")
+			.style("display", "block");
+			
+			d3.selectAll(".pathlabel.from" + d.nodes[0].Number)
+			.style("fill", "blue")
+			.style("stroke", "white")
+			.style("display", "block");
+			
+			d3.select(this).style("fill", "LightGoldenRodYellow");
+			//Update the tooltip position and value
+			d3.select("#tooltip")
+			  .style("left", xPosition + "px")
+			  .style("top", yPosition + "px")
+			  .select("#name")
+			  .text(d.nodes[0].name);
+			 
+			d3.select("#tooltip") 
+			  .select("#number")
+			  .text(d.nodes[0].Number);
+
+			  d3.select("#tooltip")
+			  .select("#pos")
+			  .text(d.nodes[0].Position);
+
+			//Show the tooltip
+			d3.select("#tooltip").classed("hidden", false);
+			   
+		})
+		.on("mouseout", function(d) {
+
+			d3.selectAll(".to" + d.nodes[0].Number + ":not(.pathlabel)")
+			.style("stroke", "grey")
+			.style("stroke-opacity", ".2");
+
+			d3.selectAll(".from" + d.nodes[0].Number + ":not(.pathlabel)")
+			.style("stroke", "grey")
+			.style("stroke-opacity", ".2");
+			
+			d3.selectAll(".pathlabel")
+			.style("fill", "grey")
+			.style("display", "none");
+						
+			//Hide the tooltip
+			d3.select("#tooltip").classed("hidden", true);
+			d3.select(this).style("fill", "white");
+		});
+			
+		svg.selectAll(".node")
+			.data(graph.nodes)
+			.append("text")
+		   .text(function(d, i) {   
+				return d.nodes[0].Number;
+		   })
+		   .attr("x", function(d, i) {
+				return d.x;
+		   })
+		   .attr("y", function(d, i) {
+				return d.y - 2 ;
+		   })
+		   .style("font-family", "sans-serif")
+		   .style("font-size", "11px")
+		   .style("text-anchor", "middle")
+		   .style("dominant-baseline", "central")
+		   .style("stroke", "black")
+		   .style("pointer-events", "none");
+		 
+		 svg.selectAll("textpaths")
+			.data(graph.links)
+			.enter()
+			.append("text")			
+			.style("font-size", "9px")
+			.attr("class", "texts")
+			.attr("x", "0")
+			/*function(d, i) {
+				var bbox = this.previousSibling.getBBox();
+				var x = Math.floor(bbox.x + bbox.width/2.0);
+				return x;
+			})*/
+			.attr("y", "0")
+			/*function(d, i) {
+				var bbox = this.previousSibling.getBBox();
+				var y = Math.floor(bbox.y + bbox.height/2.0);
+				return y ;
+			})
+			*/
+			.append("textPath")
+			.attr("class", function(d) {
+				return "pathlabel " + "from" + d.source.nodes[0].Number + " to" + d.target.nodes[0].Number;
+			})
+			.attr("xlink:href", function(d) { 
+				return '#' + "link" + "from" + d.source.nodes[0].Number + "to" + d.target.nodes[0].Number 
+			})
+			.text(function(d) { 
+				return d.value;
+			})
+			.attr("startOffset", "40%")
+			.style("stroke", "black")
+			.attr("filter","url(#f3)")
+			.style("fill", "white")
+			.style("font-family", "sans-serif")
+			
+			.style("display", "none");
+
+});
+
+
+
+	
+</script>
+	</body>
+</html>
+ 
+ 
