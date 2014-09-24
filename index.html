@@ -63,14 +63,14 @@
     .x(function(d) { return fx(d); })
     .y(function(d) { return fy(d); });
 
-	var svg;
+	//var svg;
 	
 	
 	
 d3.xml("field.svg", function(xml) {
 	svgdom = document.body.appendChild(xml.documentElement);
 
-  	svg = d3.select("svg");
+  	var svg = d3.select("svg");
 	var defs = d3.select("defs");
 
 	
@@ -79,7 +79,7 @@ d3.xml("field.svg", function(xml) {
 	scalev.domain([0, height]);
 	scalev.range([0, 808]);
   
-});
+
 d3.json("players.json", function(json) {
 
 	datap = json.nodes;
@@ -242,6 +242,7 @@ d3.json("players.json", function(json) {
 			.style("font-family", "sans-serif")	
 			.style("display", "none");
 
+});
 });
 </script>
 	</body>
