@@ -117,7 +117,7 @@ var quantize = d3.scale.quantize()
 	
 var brush = d3.svg.brush()
     .x(x)
-    .extent([0, 45])
+    //.extent([0, 45])
     .on("brushend", brushended);
 
 var svg = d3.select("#controls").append("svg")
