@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html><head>
     <meta http-equiv='X-UA-Compatible' content='IE=edge' />
-    <title>Real Madrid vs. Elche (1st half)</title>
+    <title>Villareal vs. Real Madrid (27.09.2014)</title>
 <script src="resources/d3.min.js"></script>
+<script src="resources/queue.v1.min.js"></script>
 <script src="resources/d3.rollup.v0.min.js"></script>
+<script id="sap-ui-bootstrap"
+        src="resources/sap-ui-core.js"
+        data-sap-ui-theme="sap_bluecrystal"
+        data-sap-ui-libs="sap.ui.commons"></script>
 
 </head>
 <style>
@@ -13,7 +18,7 @@
         height: auto;
         padding: 5px;
         background-color: white;
-		opacity: 0.8;
+		opacity: 0.9;
         -webkit-border-radius: 5px;
         -moz-border-radius: 5px;
         border-radius: 5px;
@@ -42,53 +47,274 @@
 
 
 </style>
+<style>
 
+.axis text {
+  font: 11px sans-serif;
+}
+
+.axis path {
+  display: none;
+}
+
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.grid-background {
+  fill: #ddd;
+}
+
+.grid line,
+.grid path {
+  fill: none;
+  stroke: #fff;
+  shape-rendering: crispEdges;
+}
+
+.grid .minor.tick line {
+  stroke-opacity: .5;
+}
+
+.brush .extent {
+  stroke: #000;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
+
+</style>
 <body>
+<div id="field" class="fieldclass">
+
+
+</div>
+<div id="controls" class="controlsclass">
+
+
+</div>
 <div id="tooltip" class="hidden">
         <p><strong>Player Detail</strong></p>
         <p>Name: <span id="name">100</span></p>
 		<p>Number: <span id="number">100</span></p>
 		<p>Position: <span id="pos">100</span></p>
 </div>
+<script>
+
+var margin = {top: 0, right: 40, bottom: 40, left: 40},
+    width = 550 - margin.left - margin.right,
+    height = 100 - margin.top - margin.bottom;
+	
+var x = d3.scale.linear()
+    .domain([0, 90])
+    .range([0, width]);
+	
+var quantize = d3.scale.quantize()
+	.domain([0, 90])
+    .range(['0','45']);
+	
+	
+var brush = d3.svg.brush()
+    .x(x)
+    .extent([0, 45])
+    .on("brushend", brushended);
+
+var svg = d3.select("#controls").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+svg.append("rect")
+    .attr("class", "grid-background")
+    .attr("width", width)
+    .attr("height", height);
+	
+svg.append("g")
+    .attr("class", "x grid")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .tickValues([0,45,90])
+        .tickSize(-height)
+        .tickFormat(""))
+  .selectAll(".tick")
+    .classed("minor", function(d) { return 2; });
+
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.svg.axis()
+      .scale(x)
+      .orient("bottom")
+      .tickValues([0,45,90])
+      .tickPadding(0))
+  .selectAll("text")
+    .attr("x", 6)
+    .style("text-anchor", null);
+
+var gBrush = svg.append("g")
+    .attr("class", "brush")
+    .call(brush)
+    .call(brush.event);
+
+gBrush.selectAll("rect")
+    .attr("height", height);
+
+function brushended() {
+  if (!d3.event.sourceEvent) return; // only transition after input
+  var extent0 = brush.extent();
+ 
+
+  // if empty when rounded, use floor & ceil instead
+  //if (extent1[0] >= extent1[1]) {
+    extent0[0] = Number(quantize(extent0[0]));
+    extent0[1] = Number(quantize(extent0[1])) + 45;
+ // }
+
+  d3.select(this).transition()
+      .call(brush.extent(extent0))
+      .call(brush.event);
+
+  drawgraphtime(extent0);
+}
+
+</script>
 	<script>
   	var scaleh = d3.scale.linear();
 	var scalev = d3.scale.linear();
 	var width = 1150,
 	height = 720;
 	
-	function fx(d) { return d.x; };
-	function fy(d) { return d.y; };
+	function fx(d) { 
+	return d.x; };
+	function fy(d) { 
+	return d.y; };
 	
 	var rollup = d3.rollup()
     .x(function(d) { return fx(d); })
     .y(function(d) { return fy(d); });
 
-	//var svg;
+	scaleh.domain([0, width]);
+	scaleh.range([0, 1100]);
+	scalev.domain([0, height]);
+	scalev.range([0, 701]);
+	        // create the button instance
+        var refresh = new sap.ui.commons.Button("refresh");
+
+        // set properties, e.g. the text (there is also a shorter way of setting several properties)
+        refresh.setText("Refresh graph");
+
+        // attach an action to the button's "press" event (use jQuery to fade out the button)
+        refresh.attachPress(function(){
+			d3.selectAll(".linkg,.node,.texts").remove();
+			drawgraph(jsonfile);
+			});
+
+
 	
 	
-	
-d3.xml("field.svg", function(xml) {
-	svgdom = document.body.appendChild(xml.documentElement);
 
   	var svg = d3.select("svg");
 	var defs = d3.select("defs");
 
+	var jsonfile;
+
+	queue()
+	.defer(d3.json, "players.json")
+	.defer(d3.xml, "field.svg", "image/svg+xml")
+	.await(ready);
 	
-	scaleh.domain([0, width]);
-	scaleh.range([0, 1268]);
-	scalev.domain([0, height]);
-	scalev.range([0, 808]);
-  
+function ready(error, players, field) {
+	
+	document.body.children[0].appendChild(field.documentElement);
+	jsonfile = cloneJSON(players);
+	draweverything(players);
+        //refresh.placeAt("controls");
+};
 
-d3.json("players.json", function(json) {
+function cloneJSON(obj) {
+    // basic type deep copy
+    if (obj === null || obj === undefined || typeof obj !== 'object')  {
+        return obj
+    }
+    // array deep copy
+    if (obj instanceof Array) {
+        var cloneA = [];
+        for (var i = 0; i < obj.length; ++i) {
+            cloneA[i] = cloneJSON(obj[i]);
+        }              
+        return cloneA;
+    }                  
+    // object deep copy
+    var cloneO = {};   
+    for (var i in obj) {
+        cloneO[i] = cloneJSON(obj[i]);
+    }                  
+    return cloneO;
+}
 
-	datap = json.nodes;
+function drawgraphtime(extent){
+	d3.selectAll(".linkg,.node,.texts").remove();
+	/*var filteredjson = d3.nest().key(function(d) { 
+		return d.time; })
+		.entries(jsonfile.links);*/
+	
+	var filteredjson = cloneJSON(jsonfile);
+	filteredjson.links = filteredjson.links.filter( function (d) { 
+		/*
+		return Number(d.time) >= extent[0] && Number(d.time) <= extent[1] ;
+		});
+		*/
+		if (Number(d.time) >= extent[0] && Number(d.time) <= extent[1]) {
+			return true; } else {
+			return false;
+			}
+		});
+		
+	draweverything(filteredjson);
 
-	var datap_start = datap.filter( function (el){
+}
+
+function draweverything(jsoninput) {
+	var graphb = jsoninput;
+	//graphb.links.forEach(function(d) { delete d['time']; delete d['type']; });
+	
+	var nest = d3.nest()
+   .key(function(d) { return "" + d.source + d.target; })
+   .rollup(function(leaves) {
+       var sum = d3.sum(leaves, function(g) { return g.value;    });
+       return {
+         source: leaves[0].source,
+         target: leaves[0].target,
+         value: sum
+       };
+   });
+
+   graphb.links = d3.values(nest.map(graphb.links));
+
+   drawgraph(graphb);
+
+
+}
+function drawgraph(jsoninput) {
+
+
+	
+	var graph = rollup(jsoninput);
+	//.entries(jsoninput.links);
+	
+	
+
+		
+	svg = d3.select("svg");
+	/*var datap_start = datap.filter( function (el){
 		return el.Status == "starting"; });
 
-	json.nodes = datap_start;
-	var graph = rollup(json);			
+	json.nodes = datap_start;*/
+			
 			
 	var link = svg.selectAll(".link")
 		.data(graph.links)
@@ -113,8 +339,9 @@ d3.json("players.json", function(json) {
 		  })
 		.style("stroke", "grey")
 		.style("stroke-width", function(d) { 
-			return d.value * 2; 
+			return d.links[0].value; 
 		  });
+//		  .attr("filter","url(#f3)");
 	  
 	var node = svg.selectAll(".node")
 		.data(graph.nodes)
@@ -132,20 +359,19 @@ d3.json("players.json", function(json) {
 		.style("stroke-width", "1")	
 		.on("mouseover", function(d) {
 
+			d3.select("#tooltip").classed("hidden", false);
+		
+		
 			var xPosition = scaleh(50 + parseFloat(d3.select(this).attr("cx")));
 			var yPosition = scalev(10 + parseFloat(d3.select(this).attr("cy")));
 
 			d3.selectAll(".to" + d.nodes[0].Number + ":not(.pathlabel)")
-			.transition()
-			.duration(10)
 			.style("stroke", "orange")
 			.style("display", "block")
 			.style("stroke-opacity", ".7")
 			;
 			
 			d3.selectAll(".from" + d.nodes[0].Number + ":not(.pathlabel)")
-			.transition()
-			.duration(10)
 			.style("stroke", "blue")
 			.style("display", "block")
 			.style("stroke-opacity", ".7")
@@ -177,7 +403,7 @@ d3.json("players.json", function(json) {
 			  .select("#pos")
 			  .text(d.nodes[0].Position);
 
-			d3.select("#tooltip").classed("hidden", false);
+
 			   
 		})
 		.on("mouseout", function(d) {
@@ -233,7 +459,7 @@ d3.json("players.json", function(json) {
 				return '#' + "link" + "from" + d.source.nodes[0].Number + "to" + d.target.nodes[0].Number 
 			})
 			.text(function(d) { 
-				return d.value;
+				return d.links[0].value;
 			})
 			.attr("startOffset", "40%")
 			.style("stroke", "black")
@@ -241,9 +467,8 @@ d3.json("players.json", function(json) {
 			.style("fill", "white")
 			.style("font-family", "sans-serif")	
 			.style("display", "none");
+};
 
-});
-});
 </script>
 	</body>
 </html>
