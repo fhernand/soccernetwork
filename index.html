@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head>
     <meta http-equiv='X-UA-Compatible' content='IE=edge' />
-    <title>Ludorogets vs. Real Madrid (01.10.2014) - CL</title>
+    <title>Villareal vs. Real Madrid (27.09.2014)</title>
 <script src="../resources/d3.min.js"></script>
 <script src="../resources/queue.v1.min.js"></script>
 <script src="../resources/d3.rollup.v0.min.js"></script>
@@ -177,7 +177,7 @@ function brushended() {
   d3.select(this).transition()
       .call(brush.extent(extent0))
       .call(brush.event);
-		
+
   drawgraphtime(extent0);
 }
 
@@ -203,44 +203,15 @@ function brushended() {
 	scalev.range([0, 701]);
 	        // create the button instance
         var refresh = new sap.ui.commons.Button("refresh");
-		var firsthalf = new sap.ui.commons.Button("firsthalf");
-		var secondhalf = new sap.ui.commons.Button("secondhalf");
-		  var extent = brush.extent();
+
         // set properties, e.g. the text (there is also a shorter way of setting several properties)
         refresh.setText("Refresh graph");
-		firsthalf.setText("1st Half");
-		secondhalf.setText("2nd Half");
+
         // attach an action to the button's "press" event (use jQuery to fade out the button)
         refresh.attachPress(function(){
 			d3.selectAll(".linkg,.node,.texts").remove();
 			drawgraph(jsonfile);
 			});
-		firsthalf.attachPress(function(){
-		    extent[0] = 0;
-			extent[1] = 45;	
-			//d3.trigger(gBrush, "mousedown");
-			d3.select(".brush").transition()
-				  .call(brush.extent(extent))
-				  .call(brush.event);
-		    
-			drawgraphtime(extent);
-
-			});
-		secondhalf.attachPress(function(){
-		    extent[0] = 45;
-			extent[1] = 90;	
-			
-			//d3.trigger(gBrush, "mousedown");
-			d3.select(".brush").transition()
-				  .call(brush.extent(extent))
-				  .call(brush.event);
-				  
-			drawgraphtime(extent);
-
-				  //.call(brush.event);
-			});
-
-			
 
 
 	
@@ -256,31 +227,12 @@ function brushended() {
 	.defer(d3.xml, "field.svg", "image/svg+xml")
 	.await(ready);
 	
-d3.trigger = function(d3Obj, evtName) {
-    console.log(d3Obj);
-    var el    = d3Obj[0][0]
-      , event = d3.event;
-
-   // all browsers except IE before version 9
-        d3.event = document.createEvent ("MouseEvent");
-        d3.event.sourceEvent = document.createEvent ("MouseEvent");
-		d3.event.sourceEvent.initMouseEvent (
-            "brushend", true, true, window, 0, 
-            0, 0, 0, 0, 
-            false, false, false, false, 
-            0, null);
-		//d3.event.sourceEvent = mousedownEvent;	
-        //el.dispatchEvent (mousedownEvent);
-
-};
-	
 function ready(error, players, field) {
 	
 	document.body.children[0].appendChild(field.documentElement);
 	jsonfile = cloneJSON(players);
 	draweverything(players);
-    firsthalf.placeAt("controls");
-    secondhalf.placeAt("controls");
+        //refresh.placeAt("controls");
 };
 
 function cloneJSON(obj) {
