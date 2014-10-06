@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html><head>
     <meta http-equiv='X-UA-Compatible' content='IE=edge' />
-    <title>Villareal vs. Real Madrid (27.09.2014)</title>
+    <title>Real Madrid vs Athletic Bilbao (05.10.2014) - La Liga</title>
 <script src="../resources/d3.min.js"></script>
 <script src="../resources/queue.v1.min.js"></script>
 <script src="../resources/d3.rollup.v0.min.js"></script>
 <script id="sap-ui-bootstrap"
         src="../resources/sap-ui-core.js"
         data-sap-ui-theme="sap_bluecrystal"
-        data-sap-ui-libs="sap.ui.commons"></script>
+        data-sap-ui-libs="sap.ui.commons, sap.ui.table"></script>
 
 </head>
 <style>
@@ -43,6 +43,7 @@
   fill: none;
   stroke: #000;
   stroke-opacity: .2;
+  stroke-linecap: round;
 }
 
 
@@ -84,22 +85,202 @@
   shape-rendering: crispEdges;
 }
 
+  div#info {
+    font-size: 0.9em;
+    float: right; width: 32em;
+  }
+  
+  div#field {
+    font-size: 0.9em;
+    width: 1170px;
+    margin: 0; padding: 0;
+    background-color: #eee;
+  }
+  div#page {
+    text-align: left;    /* Seiteninhalt wieder links ausrichten */
+    margin: 0 auto;      /* standardkonforme horizontale Zentrierung */
+    width: 1600px;
+    padding: 0.5em;
+    border: 2px ridge silver;
+  }
+    div#controls {
+    text-align: left;    /* Seiteninhalt wieder links ausrichten */
+    margin: 0 auto;      /* standardkonforme horizontale Zentrierung */
+    width: 1600px;
+    padding: 0.5em;
+    border: 2px ridge silver;
+  }
+  
+  .UI5Table{
+    text-align: left;    /* Seiteninhalt wieder links ausrichten */
+    margin: 0 auto;      /* standardkonforme horizontale Zentrierung */
+    padding: 0.5em;
+	font-size: 0.9em;
+	background-color: #eee;
+    border: 2px ridge silver;
+	margin-bottom: 10px;
+	}
+
 </style>
 <body>
+<div id="page" class="pageclass">
+
+
+
 <div id="field" class="fieldclass">
 
 
 </div>
-<div id="controls" class="controlsclass">
-
+<div id="info" class="infoclass">
 
 </div>
+
 <div id="tooltip" class="hidden">
         <p><strong>Player Detail</strong></p>
         <p>Name: <span id="name">100</span></p>
 		<p>Number: <span id="number">100</span></p>
 		<p>Position: <span id="pos">100</span></p>
 </div>
+</div>
+<div id="controls" class="controlsclass">
+
+
+</div>
+
+<script>
+//Create an instance of the table control
+var oTable = new sap.ui.table.Table({
+        title: "Players",
+        visibleRowCount: 10,
+        firstVisibleRow: 3,
+        selectionMode: sap.ui.table.SelectionMode.Single
+		/*,
+        toolbar: new sap.ui.commons.Toolbar({items: [ 
+                new sap.ui.commons.Button({text: "Button in the Toolbar", press: function() { alert("Button pressed!"); }})*/
+        
+		/*,
+        extension: [
+                new sap.ui.commons.Button({text: "Button in the Extension Area", press: function() { alert("Button pressed!"); }})
+        ]*/
+});
+
+//Define the columns and the control templates to be used
+oTable.addColumn(new sap.ui.table.Column({
+	label: new sap.ui.commons.Label({text: "Nr."}),
+	template: new sap.ui.commons.TextView().bindProperty("text", "Number"),
+	//sortProperty: "Number",
+	filterProperty: "Number",
+	width: "30px"
+}));
+oTable.addColumn(new sap.ui.table.Column({
+	label: new sap.ui.commons.Label({text: "Player Name"}),
+	template: new sap.ui.commons.TextView().bindProperty("text", "name"),
+	sortProperty: "name",
+	width: "75px"
+}));
+
+oTable.addColumn(new sap.ui.table.Column({
+	label: new sap.ui.commons.Label({text: "Pos."}),
+	template: new sap.ui.commons.TextView().bindProperty("text", "Position"),
+	sortProperty: "Position",
+	filterProperty: "Position",
+	width: "40px"
+}));
+oTable.addColumn(new sap.ui.table.Column({
+	label: new sap.ui.commons.Label({text: "Status"}),
+	template: new sap.ui.commons.TextView().bindProperty("text", "Status"),
+	sortProperty: "Status",
+	filterProperty: "Status",
+	width: "40px"
+}));
+
+oTable.addStyleClass("UI5Table");
+
+//Create an instance of the table control
+var oTableGames = new sap.ui.table.Table({
+        title: "Fixtures",
+        visibleRowCount: 7,
+        firstVisibleRow: 3,
+        selectionMode: sap.ui.table.SelectionMode.Multi
+		/*,
+        toolbar: new sap.ui.commons.Toolbar({items: [ 
+                new sap.ui.commons.Button({text: "Button in the Toolbar", press: function() { alert("Button pressed!"); }})*/
+        
+		/*,
+        extension: [
+                new sap.ui.commons.Button({text: "Button in the Extension Area", press: function() { alert("Button pressed!"); }})
+        ]*/
+});
+			jQuery.sap.require("sap.ui.core.format.DateFormat");
+
+
+			function dateShort(oDate){
+				var oDate = (oDate instanceof Date) ? oDate : new Date(oDate);
+				var dateFormat = sap.ui.core.format.DateFormat.getDateInstance({pattern : "dd.MM.yyyy" });
+				 return dateFormat.format(oDate);
+			};
+
+			var dateType = new sap.ui.model.type.Date({
+				source: {pattern: "yyyy-MM-dd"}, pattern: "dd.MM.yyyy"
+			});
+
+//Define the columns and the control templates to be used
+oTableGames.addColumn(new sap.ui.table.Column({
+	label: new sap.ui.commons.Label({text: "Nr."}),
+	template: new sap.ui.commons.TextField(  
+				{
+					value: {
+						path : "date", 
+						formatter : dateShort,
+					},
+				}),
+	sortProperty: "date",
+	filterProperty: "date",
+	filterType: dateType,
+	width: "37px"
+}));
+oTableGames.addColumn(new sap.ui.table.Column({
+	label: new sap.ui.commons.Label({text: "Comp."}),
+	template: new sap.ui.commons.TextView().bindProperty("text", "competition"),
+	sortProperty: "competition",
+	filterProperty: "competition",
+	width: "31px"
+}));
+oTableGames.addColumn(new sap.ui.table.Column({
+	label: new sap.ui.commons.Label({text: "Where"}),
+	template: new sap.ui.commons.TextView().bindProperty("text", "where"),
+	sortProperty: "where",
+	filterProperty: "where",
+	width: "27px"
+}));
+oTableGames.addColumn(new sap.ui.table.Column({
+	label: new sap.ui.commons.Label({text: "Rival team"}),
+	template: new sap.ui.commons.TextView().bindProperty("text", "against"),
+	sortProperty: "against",
+	filterProperty: "against",
+	width: "50px"
+}));
+oTableGames.addColumn(new sap.ui.table.Column({
+	label: new sap.ui.commons.Label({text: "Result"}),
+	template: new sap.ui.commons.TextView().bindProperty("text", {
+            parts: [
+                {path: "goalsfor" },
+                {path: "goalsagainst" }
+            ],
+ 
+ 
+            formatter: function(goalsfor, goalsagainst){   
+                         
+             
+              return goalsfor + " - " + goalsagainst;
+            }}),			
+	width: "30px"
+}));
+
+oTableGames.addStyleClass("UI5Table");
+
+</script>
+
 <script>
 
 var margin = {top: 0, right: 40, bottom: 40, left: 40},
@@ -117,7 +298,7 @@ var quantize = d3.scale.quantize()
 	
 var brush = d3.svg.brush()
     .x(x)
-    //.extent([0, 45])
+    .extent([0, 90])
     .on("brushend", brushended);
 
 var svg = d3.select("#controls").append("svg")
@@ -177,7 +358,7 @@ function brushended() {
   d3.select(this).transition()
       .call(brush.extent(extent0))
       .call(brush.event);
-
+		
   drawgraphtime(extent0);
 }
 
@@ -203,15 +384,44 @@ function brushended() {
 	scalev.range([0, 701]);
 	        // create the button instance
         var refresh = new sap.ui.commons.Button("refresh");
-
+		var firsthalf = new sap.ui.commons.Button("firsthalf");
+		var secondhalf = new sap.ui.commons.Button("secondhalf");
+		  var extent = brush.extent();
         // set properties, e.g. the text (there is also a shorter way of setting several properties)
         refresh.setText("Refresh graph");
-
+		firsthalf.setText("1st Half");
+		secondhalf.setText("2nd Half");
         // attach an action to the button's "press" event (use jQuery to fade out the button)
         refresh.attachPress(function(){
 			d3.selectAll(".linkg,.node,.texts").remove();
 			drawgraph(jsonfile);
 			});
+		firsthalf.attachPress(function(){
+		    extent[0] = 0;
+			extent[1] = 45;	
+			//d3.trigger(gBrush, "mousedown");
+			d3.select(".brush").transition()
+				  .call(brush.extent(extent))
+				  .call(brush.event);
+		    
+			drawgraphtime(extent);
+
+			});
+		secondhalf.attachPress(function(){
+		    extent[0] = 45;
+			extent[1] = 90;	
+			
+			//d3.trigger(gBrush, "mousedown");
+			d3.select(".brush").transition()
+				  .call(brush.extent(extent))
+				  .call(brush.event);
+				  
+			drawgraphtime(extent);
+
+				  //.call(brush.event);
+			});
+
+			
 
 
 	
@@ -227,12 +437,85 @@ function brushended() {
 	.defer(d3.xml, "field.svg", "image/svg+xml")
 	.await(ready);
 	
+d3.trigger = function(d3Obj, evtName) {
+    console.log(d3Obj);
+    var el    = d3Obj[0][0]
+      , event = d3.event;
+
+   // all browsers except IE before version 9
+        d3.event = document.createEvent ("MouseEvent");
+        d3.event.sourceEvent = document.createEvent ("MouseEvent");
+		d3.event.sourceEvent.initMouseEvent (
+            "brushend", true, true, window, 0, 
+            0, 0, 0, 0, 
+            false, false, false, false, 
+            0, null);
+		//d3.event.sourceEvent = mousedownEvent;	
+        //el.dispatchEvent (mousedownEvent);
+
+};
+	
 function ready(error, players, field) {
 	
 	document.body.children[0].appendChild(field.documentElement);
 	jsonfile = cloneJSON(players);
 	draweverything(players);
-        //refresh.placeAt("controls");
+    firsthalf.placeAt("controls");
+    secondhalf.placeAt("controls");
+	
+	//Create a model and bind the table rows to this model
+	var oModel = new sap.ui.model.json.JSONModel();
+	oModel.setData({modelData: jsonfile.nodes});
+	oTable.setModel(oModel);
+	oTable.bindRows("/modelData");
+
+	var oModelGames = new sap.ui.model.json.JSONModel();
+	oModelGames.setData({modelDataGames: jsonfile.game});
+	oTableGames.setModel(oModelGames);
+	oTableGames.bindRows("/modelDataGames");
+	
+	oTable.attachRowSelectionChange(function(oEvent){
+      var idx = oEvent.getParameter('rowIndex');
+	  var idxes = oEvent.getParameter('rowIndices');
+	  var idxlen = idxes.length;
+	  if (idxlen > 1) {
+		for (i = 0; i < idxlen; i++) { 
+			if (idxes[i] != idx) {
+				var cxtoff = oTable.getContextByIndex(idxes[i]);
+				var pathoff = cxtoff.sPath;
+				var objoff = oTable.getModel().getProperty(pathoff);
+				var d3objoff = d3.select(".player" + objoff.Number).node();
+				lightoff(objoff, d3objoff);
+			}
+		}
+	  } else {
+		if (oTable.isIndexSelected(idx) == false) {
+				var cxtoff = oTable.getContextByIndex(idx);
+				var pathoff = cxtoff.sPath;
+				var objoff = oTable.getModel().getProperty(pathoff);
+				var d3objoff = d3.select(".player" + objoff.Number).node();
+				lightoff(objoff, d3objoff);
+		}};
+		
+		if (oTable.isIndexSelected(idx)) {
+			var cxt = oTable.getContextByIndex(idx);
+			var path = cxt.sPath;
+			var obj = oTable.getModel().getProperty(path);
+			var d3obj = d3.select(".player" + obj.Number).node();
+			lightup(obj, d3obj);       
+		}
+	  
+	  
+	  
+	});
+	//Initially sort the table
+	oTable.sort(oTable.getColumns()[0]);
+
+	//Bring the table onto the UI 
+	oTable.placeAt("info");
+	oTableGames.placeAt("info");
+
+	
 };
 
 function cloneJSON(obj) {
@@ -275,7 +558,14 @@ function drawgraphtime(extent){
 		});
 		
 	draweverything(filteredjson);
-
+		var idx = oTable.getSelectedIndex();
+		if (idx >= 0) {
+		var cxt = oTable.getContextByIndex(idx);
+		var path = cxt.sPath;
+		var obj = oTable.getModel().getProperty(path);
+		var d3obj = d3.select(".player" + obj.Number).node();
+		lightup(obj, d3obj);       
+		};	
 }
 
 function draweverything(jsoninput) {
@@ -349,6 +639,8 @@ function drawgraph(jsoninput) {
 		.attr("class", "node")
 		.style("pointer-events", "all")
 		.append("circle")
+		.attr("class", function(d, i){
+			return "player" + d.nodes[0].Number })
 		.attr("cx", function(d, i){ 
 			return d.x})
 		.attr("cy", function(d, i){ return d.y})
@@ -356,8 +648,11 @@ function drawgraph(jsoninput) {
 		.attr("filter","url(#f3)")
 		.style("fill", "white")
 		.style("stroke", "grey")
-		.style("stroke-width", "1")	
-		.on("mouseover", function(d) {
+		.style("stroke-width", "1");
+/*		
+		.on("mouseover", function(d){
+			lightup(d, this);
+			}) /*function(d) {
 
 			d3.select("#tooltip").classed("hidden", false);
 		
@@ -422,7 +717,7 @@ function drawgraph(jsoninput) {
 
 			d3.select("#tooltip").classed("hidden", true);
 			d3.select(this).style("fill", "white");
-		});
+		});*/ 
 			
 		svg.selectAll(".node")
 			.data(graph.nodes)
@@ -468,6 +763,75 @@ function drawgraph(jsoninput) {
 			.style("font-family", "sans-serif")	
 			.style("display", "none");
 };
+
+function lightup(d, d3obj) {
+
+			//d3.select("#tooltip").classed("hidden", false);
+		
+		
+			var xPosition = scaleh(50 + parseFloat(d3.select(d3obj).attr("cx")));
+			var yPosition = scalev(10 + parseFloat(d3.select(d3obj).attr("cy")));
+
+			d3.selectAll(".to" + d.Number + ":not(.pathlabel)")
+			.style("stroke", "orange")
+			.style("display", "block")
+			.style("stroke-opacity", ".7")
+			;
+			
+			d3.selectAll(".from" + d.Number + ":not(.pathlabel)")
+			.style("stroke", "blue")
+			.style("display", "block")
+			.style("stroke-opacity", ".7")
+			;
+
+			d3.selectAll(".pathlabel.to" + d.Number)
+			.style("fill", "orange")
+			.style("stroke", "white")
+			.style("display", "block");
+			
+			d3.selectAll(".pathlabel.from" + d.Number)
+			.style("fill", "blue")
+			.style("stroke", "white")
+			.style("display", "block");
+			
+			d3.select(d3obj).style("fill", "LightGoldenRodYellow");
+
+			/*
+			d3.select("#tooltip")
+			  .style("left", xPosition + "px")
+			  .style("top", yPosition + "px")
+			  .select("#name")
+			  .text(d.name);
+			 
+			d3.select("#tooltip") 
+			  .select("#number")
+			  .text(d.Number);
+
+			  d3.select("#tooltip")
+			  .select("#pos")
+			  .text(d.Position);
+*/
+
+			   
+		};
+		
+function lightoff(d, d3obj) {
+
+			d3.selectAll(".to" + d.Number + ":not(.pathlabel)")
+			.style("stroke", "grey")
+			.style("stroke-opacity", ".2");
+
+			d3.selectAll(".from" + d.Number + ":not(.pathlabel)")
+			.style("stroke", "grey")
+			.style("stroke-opacity", ".2");
+			
+			d3.selectAll(".pathlabel")
+			.style("fill", "grey")
+			.style("display", "none");
+
+			d3.select("#tooltip").classed("hidden", true);
+			d3.select(d3obj).style("fill", "white");
+		};
 
 </script>
 	</body>
